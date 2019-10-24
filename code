@@ -1,0 +1,45 @@
+#记得改月份
+
+import pandas as pd
+import xlwings as xw
+
+#data process
+INC = pd.read_excel(r'C:\Users\krrg185\Documents\BOT 数据处理\HK.xlsx')
+INC.to_excel(excel_writer = r'C:\Users\krrg185\Documents\HK Incident\HK incident in August 2019.xlsx')
+wb = xw.App(visible = False, add_book = False).books.open(r'C:\Users\krrg185\Documents\HK Incident\HK incident in August 2019.xlsx')
+shtList=['Business Service',
+         'Owned By',
+         'Caller',
+         'Assignment group',
+         'Priority']
+
+for b in shtList:
+    wb.sheets.add(b)
+    df=INC[b].value_counts()
+    wb.sheets[b].range("A1").value = df
+
+wb.sheets['sheet1'].range('A:A').api.Delete()
+wb.save()
+wb.app.quit()
+
+#send email to Alice and Kelvin
+import win32com.client as win32
+import warnings
+import pythoncom
+
+warnings.filterwarnings('ignore')
+pythoncom.CoInitialize()
+def sendmail():
+    sub = 'SNOW report'
+    body = 'Hi Alice,\nHere is the report for October. Please feel free to let me know if you have any question or concern. \n\nBest Regards,\nGin'
+    outlook = win32.Dispatch('outlook.application')
+    receivers = ['leung, alice; leung, kelvin']
+    mail = outlook.CreateItem(0)
+    mail.To = receivers[0]
+    mail.Subject = sub
+    mail.Body = body
+    mail.Attachments.Add(r'C:\Users\krrg185\Documents\HK Incident\HK incident in August 2019.xlsx')
+    mail.Send()
+
+sendmail()
+print("OK")
